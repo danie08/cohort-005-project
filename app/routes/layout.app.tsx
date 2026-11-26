@@ -1,3 +1,5 @@
+import { FeedPrototype } from "~/components/feed-prototype";
+import { loadPrototypeFeed } from "~/lib/feed-prototype.server";
 import { Outlet } from "react-router";
 import type { Route } from "./+types/layout.app";
 import { Sidebar } from "~/components/sidebar";
@@ -199,6 +201,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     : [];
 
   return {
+    prototypeFeed: import.meta.env.DEV && new URL(request.url).searchParams.has("variant") ? await loadPrototypeFeed(currentUser?.id ?? null) : null,
     users: users.map((u) => ({ id: u.id, name: u.name, role: u.role })),
     currentUser: currentUser
       ? {
@@ -235,7 +238,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
         isTeamAdmin={userIsTeamAdmin}
       />
       <main className="flex-1 overflow-y-auto">
-        <Outlet />
+        {loaderData.prototypeFeed ? <FeedPrototype key={currentUser?.id ?? "guest"} feed={loaderData.prototypeFeed} role={currentUser?.role} team={userIsTeamAdmin}><Outlet /></FeedPrototype> : <Outlet />}
       </main>
       <DevUI
         users={users}
